@@ -41,6 +41,15 @@
   input:focus,select:focus{outline:none;border-color:var(--accent)}
   input.warn{border-color:var(--warn)}
   select{font-family:'IBM Plex Sans',sans-serif}
+  input[type="date"]{
+    -webkit-appearance:none;appearance:none;
+    text-align:left;display:block;min-height:47px;
+    padding:12px;line-height:1.2
+  }
+  input[type="date"]::-webkit-date-and-time-value{text-align:left}
+  input[type="date"]::-webkit-calendar-picker-indicator{
+    filter:invert(.65);opacity:.8;margin-left:auto
+  }
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
   .field{margin-bottom:11px}
