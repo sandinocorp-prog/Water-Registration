@@ -56,6 +56,20 @@
   .phchip{flex:1 1 28%;min-width:92px;padding:11px 8px;border-radius:11px;border:1px solid var(--line);background:var(--panel2);text-align:center;font-weight:600;font-size:13px;position:relative}
   .phchip .cnt{display:block;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;color:var(--dim);margin-top:2px}
   .phchip.on{border-width:2px;padding:10px 7px}
+  /* ---- tematizado por fase (se inyecta --ph-f / --ph-b al elegir fase) ---- */
+  #phaseArea{--ph-f:var(--accent);--ph-b:var(--panel2)}
+  #drainCard,#compCard{border-color:var(--ph-f);border-left:4px solid var(--ph-f)}
+  #drainCard{background:linear-gradient(180deg,var(--ph-b),var(--panel) 65%)}
+  #drainCard h2,#compCard h2{color:var(--ph-f)}
+  #drainCard .banner.i{background:var(--ph-b);border-color:var(--ph-f);color:var(--ph-f)}
+  #drainCard input:focus,#compCard input:focus{border-color:var(--ph-f)}
+  #phaseArea .comprow{border-left:3px solid var(--ph-f)}
+  #phName{color:var(--ph-f)}
+  .sheet{--ph-f:var(--accent);--ph-b:var(--panel2)}
+  .sheet h3{color:var(--ph-f);border-bottom:2px solid var(--ph-f);padding-bottom:10px}
+  .sheet input:focus{border-color:var(--ph-f)}
+  #cmSave{background:var(--ph-f)}
+  #cPct{color:var(--ph-f) !important}
   .drainbox{border-radius:12px;padding:12px;margin-bottom:12px;border:1px solid}
   .drainbox .dh{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
   .drainbox .dh span{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
@@ -125,7 +139,7 @@
     </div>
 
     <div id="phaseArea" style="display:none">
-      <div class="card">
+      <div class="card" id="drainCard">
         <h2>Drenaje de fase — <span id="phName" class="mono"></span></h2>
         <div class="banner i"><span>💧</span><span>El drenaje se mide UNA vez por fase (escala única) y aplica a todos sus compartimientos hoy.</span></div>
         <div class="grid3">
@@ -135,7 +149,7 @@
         </div>
       </div>
 
-      <div class="card">
+      <div class="card" id="compCard">
         <h2>Compartimientos</h2>
         <div class="complist" id="compList"></div>
       </div>
@@ -359,8 +373,11 @@ function selectPhase(p){
   curPhase=p;
   el('phaseArea').style.display='block';
   el('phName').textContent=p.id;
+  // pinta toda el área con el color de la fase
   const c=PHC[p.v];
-  const db=el('phaseArea').querySelector('.card'); // drain card is first
+  const area=el('phaseArea');
+  area.style.setProperty('--ph-f',c.f);
+  area.style.setProperty('--ph-b',c.b);
   // load stored phase drain for this date+phase
   const d=el('regDate').value;
   const ds=(drainStore[d]&&drainStore[d][p.id])||{};
@@ -408,6 +425,11 @@ function renderCompList(){
 /* ==== modal de compartimiento ==== */
 function openComp(cn,rec){
   curComp=cn; editingId=rec?rec.id:null;
+  // el modal hereda el color de la fase activa
+  const pc=PHC[curPhase.v];
+  const sheet=document.querySelector('#compModal .sheet');
+  sheet.style.setProperty('--ph-f',pc.f);
+  sheet.style.setProperty('--ph-b',pc.b);
   const drip=drippersFor(curPhase.id,cn);
   const dr=currentPhaseDrain();
   el('cmTitle').textContent=`${curPhase.id} · ${cn}`;
