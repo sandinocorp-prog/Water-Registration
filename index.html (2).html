@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0d1117">
+<title>Agriville Aguas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c232c; --line:#2a323d;
+    --txt:#e6edf3; --dim:#8b949e; --dim2:#6e7681;
+    --accent:#58c4dc; --ok:#3fb950; --warn:#d29922; --err:#f85149;
+    --A1b:#1a3a4a; --A1f:#5ab8e0;
+    --A2b:#1a3d28; --A2f:#4dcf7a;
+    --A4b:#3a3218; --A4f:#d4b84a;
+    --A5b:#3a2818; --A5f:#d4874a;
+    --3Nb:#2a1e40; --3Nf:#9b7de8;
+    --3Sb:#3a1e1e; --3Sf:#e87d7d;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{background:var(--bg);color:var(--txt);font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:15px;line-height:1.4;padding-bottom:72px}
+  .mono{font-family:'IBM Plex Mono',monospace}
+  header{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,#0d1117 70%,rgba(13,17,23,0));padding:12px 14px 8px}
+  .htop{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .brand{font-weight:700;font-size:17px;letter-spacing:.3px}
+  .brand small{color:var(--dim);font-weight:500;font-size:12px;display:block;letter-spacing:0}
+  .dot{display:flex;align-items:center;gap:6px;font-size:11px;font-family:'IBM Plex Mono',monospace;padding:5px 9px;border-radius:20px;background:var(--panel);border:1px solid var(--line);color:var(--dim)}
+  .dot b{width:8px;height:8px;border-radius:50%;background:var(--dim2);display:inline-block}
+  .dot.ok b{background:var(--ok)} .dot.ok{color:var(--ok)}
+  .dot.pending b{background:var(--warn)} .dot.pending{color:var(--warn)}
+  .dot.busy b{background:var(--accent);animation:pulse 1s infinite} .dot.busy{color:var(--accent)}
+  .dot.err b{background:var(--err)} .dot.err{color:var(--err)}
+  @keyframes pulse{50%{opacity:.35}}
+  main{padding:6px 14px 20px;max-width:640px;margin:0 auto}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+  .card h2{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:12px;font-weight:600}
+  label{display:block;font-size:12px;color:var(--dim);margin:0 0 5px 2px;font-weight:500}
+  input,select{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:10px;color:var(--txt);padding:12px;font-size:16px;font-family:'IBM Plex Mono',monospace}
+  input:focus,select:focus{outline:none;border-color:var(--accent)}
+  input.warn{border-color:var(--warn)}
+  select{font-family:'IBM Plex Sans',sans-serif}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .field{margin-bottom:11px}
+  .field:last-child{margin-bottom:0}
+  .whint{font-size:11px;color:var(--warn);margin:4px 0 0 2px;min-height:0}
+  button{cursor:pointer;font-family:'IBM Plex Sans',sans-serif;border:none}
+  .btn{width:100%;background:var(--accent);color:#04141a;font-weight:700;font-size:16px;padding:14px;border-radius:12px;letter-spacing:.3px}
+  .btn:active{transform:scale(.99)}
+  .btn.sec{background:var(--panel2);color:var(--txt);border:1px solid var(--line);font-weight:600}
+  .btn.gho{background:transparent;color:var(--dim);border:1px solid var(--line)}
+  .btn:disabled{opacity:.4}
+  .phchips{display:flex;flex-wrap:wrap;gap:7px}
+  .phchip{flex:1 1 28%;min-width:92px;padding:11px 8px;border-radius:11px;border:1px solid var(--line);background:var(--panel2);text-align:center;font-weight:600;font-size:13px;position:relative}
+  .phchip .cnt{display:block;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;color:var(--dim);margin-top:2px}
+  .phchip.on{border-width:2px;padding:10px 7px}
+  .drainbox{border-radius:12px;padding:12px;margin-bottom:12px;border:1px solid}
+  .drainbox .dh{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .drainbox .dh span{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+  .badge{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:3px 7px;border-radius:6px;background:rgba(255,255,255,.08)}
+  .complist{display:flex;flex-direction:column;gap:7px}
+  .comprow{display:flex;align-items:center;gap:10px;padding:11px 12px;background:var(--panel2);border:1px solid var(--line);border-radius:11px}
+  .comprow .cn{font-weight:600;flex:1}
+  .comprow .cn small{display:block;color:var(--dim2);font-size:11px;font-family:'IBM Plex Mono',monospace;font-weight:400}
+  .comprow .st{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:4px 8px;border-radius:7px}
+  .comprow .st.pend{color:var(--dim);background:rgba(139,148,158,.12)}
+  .comprow .st.done{color:var(--ok);background:rgba(63,185,80,.14)}
+  .comprow .pd{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;min-width:52px;text-align:right}
+  .tabs{position:fixed;bottom:0;left:0;right:0;z-index:30;display:flex;background:var(--panel);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+  .tab{flex:1;background:none;padding:10px 4px 12px;color:var(--dim2);font-size:11px;display:flex;flex-direction:column;align-items:center;gap:3px;font-weight:600}
+  .tab .ic{font-size:20px;line-height:1}
+  .tab.on{color:var(--accent)}
+  .pg{display:none} .pg.on{display:block}
+  .logrow{display:flex;align-items:center;gap:9px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .logrow:last-child{border-bottom:none}
+  .logrow .tag{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;padding:3px 6px;border-radius:6px;white-space:nowrap}
+  .logrow .info{flex:1;min-width:0}
+  .logrow .info b{font-size:14px} .logrow .info small{display:block;color:var(--dim);font-size:11px;font-family:'IBM Plex Mono',monospace}
+  .logrow .act{display:flex;gap:6px}
+  .iconb{width:32px;height:32px;border-radius:8px;background:var(--panel2);border:1px solid var(--line);color:var(--dim);font-size:14px;display:flex;align-items:center;justify-content:center}
+  .empty{text-align:center;color:var(--dim2);padding:26px 10px;font-size:13px}
+  .modal{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center}
+  .modal.on{display:flex}
+  .sheet{background:var(--panel);border-radius:18px 18px 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom));width:100%;max-width:640px;border:1px solid var(--line);border-bottom:none}
+  .sheet h3{font-size:15px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+  .kv{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:12px;padding:6px 0;border-bottom:1px solid var(--line);color:var(--dim)}
+  .kv b{color:var(--txt)}
+  .banner{border-radius:10px;padding:9px 12px;font-size:12px;margin-bottom:12px;display:flex;gap:8px;align-items:center}
+  .banner.w{background:rgba(210,153,34,.12);border:1px solid rgba(210,153,34,.35);color:#e3b341}
+  .banner.i{background:rgba(88,196,220,.1);border:1px solid rgba(88,196,220,.3);color:var(--accent)}
+  code{font-family:'IBM Plex Mono',monospace;font-size:11px}
+  pre{background:#0a0e13;border:1px solid var(--line);border-radius:10px;padding:11px;overflow:auto;font-size:10.5px;line-height:1.5;font-family:'IBM Plex Mono',monospace;color:#c9d1d9;max-height:280px}
+  .drtable{width:100%;font-family:'IBM Plex Mono',monospace;font-size:11.5px;border-collapse:collapse}
+  .drtable td,.drtable th{padding:5px 6px;border-bottom:1px solid var(--line);text-align:left}
+  .drtable th{color:var(--dim);font-weight:600;font-size:10px;text-transform:uppercase}
+  .drtable td:last-child,.drtable th:last-child{text-align:right}
+  .toast{position:fixed;bottom:82px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--panel2);border:1px solid var(--line);color:var(--txt);padding:11px 18px;border-radius:24px;font-size:13px;font-weight:600;opacity:0;transition:.25s;z-index:60;pointer-events:none;white-space:nowrap}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.ok{border-color:var(--ok);color:var(--ok)}
+  .toast.err{border-color:var(--err);color:var(--err)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="htop">
+    <div class="brand">Agriville Aguas<small>Registro diario de drenaje</small></div>
+    <div class="dot" id="syncDot"><b></b><span id="syncTxt">config</span></div>
+  </div>
+</header>
+
+<main>
+  <!-- ============ REGISTRAR ============ -->
+  <section class="pg on" id="pgReg">
+    <div class="card">
+      <h2>Fecha &amp; Fase</h2>
+      <div class="field">
+        <label>Fecha del registro</label>
+        <input type="date" id="regDate">
+      </div>
+      <label>Fase</label>
+      <div class="phchips" id="phChips"></div>
+    </div>
+
+    <div id="phaseArea" style="display:none">
+      <div class="card">
+        <h2>Drenaje de fase — <span id="phName" class="mono"></span></h2>
+        <div class="banner i"><span>💧</span><span>El drenaje se mide UNA vez por fase (escala única) y aplica a todos sus compartimientos hoy.</span></div>
+        <div class="grid3">
+          <div class="field"><label>pH Drain</label><input class="mono" id="dPh" inputmode="decimal" placeholder="—"><div class="whint" id="w_dPh"></div></div>
+          <div class="field"><label>EC Drain</label><input class="mono" id="dEc" inputmode="decimal" placeholder="—"><div class="whint" id="w_dEc"></div></div>
+          <div class="field"><label>Vol Drain</label><input class="mono" id="dVol" inputmode="numeric" placeholder="—"><div class="whint" id="w_dVol"></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Compartimientos</h2>
+        <div class="complist" id="compList"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RESUMEN ============ -->
+  <section class="pg" id="pgSum">
+    <div class="card">
+      <h2>Progreso de hoy</h2>
+      <div id="todayProg"></div>
+    </div>
+    <div class="card">
+      <h2>Registros de hoy</h2>
+      <div id="todayLog"></div>
+    </div>
+  </section>
+
+  <!-- ============ CONFIG ============ -->
+  <section class="pg" id="pgCfg">
+    <div class="card">
+      <h2>Tu configuración</h2>
+      <div class="field"><label>Tu nombre</label><input id="cfgName" placeholder="Ej: Juan"></div>
+      <div class="field"><label>URL del Apps Script</label><input id="cfgUrl" class="mono" placeholder="https://script.google.com/macros/s/.../exec" style="font-size:12px"></div>
+      <div class="grid2">
+        <button class="btn sec" id="btnSaveCfg">Guardar</button>
+        <button class="btn gho" id="btnTest">Probar conexión</button>
+      </div>
+      <div id="cfgMsg" style="font-size:12px;margin-top:10px;text-align:center;color:var(--dim)"></div>
+    </div>
+
+    <div class="card">
+      <h2>Sincronización</h2>
+      <div class="kv"><span>En cola (offline)</span><b id="qCount">0</b></div>
+      <div class="kv"><span>Registros locales</span><b id="eCount">0</b></div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn sec" id="btnSync">Sincronizar ahora</button>
+        <button class="btn gho" id="btnPull">Traer del Sheet</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Goteros por compartimiento (admin)</h2>
+      <div class="banner w"><span>⚠️</span><span>Solo el administrador cambia estos valores. Se editan en el código y se redespliega (temporada / fin de ciclo). Cada registro guarda el gotero usado ese día, así el histórico nunca se recalcula.</span></div>
+      <table class="drtable" id="drTable"></table>
+    </div>
+
+    <div class="card">
+      <h2>Instalar el backend (una vez)</h2>
+      <p style="font-size:12.5px;color:var(--dim);margin-bottom:10px">Crea un Google Sheet nuevo llamado <b class="mono" style="color:var(--txt)">Agriville Aguas 2026</b>. Menú <b>Extensiones → Apps Script</b>, pega este código, y despliega como <b>Aplicación web</b> (Ejecutar como: tú · Acceso: cualquiera). Copia la URL <code>/exec</code> y pégala arriba.</p>
+      <button class="btn gho" id="btnCopyGS" style="margin-bottom:10px">📋 Copiar código Apps Script</button>
+      <pre id="gsCode"></pre>
+    </div>
+  </section>
+</main>
+
+<div class="tabs">
+  <button class="tab on" data-pg="pgReg"><span class="ic">✏️</span>Registrar</button>
+  <button class="tab" data-pg="pgSum"><span class="ic">📋</span>Resumen</button>
+  <button class="tab" data-pg="pgCfg"><span class="ic">⚙️</span>Config</button>
+</div>
+
+<!-- comp entry modal -->
+<div class="modal" id="compModal">
+  <div class="sheet">
+    <h3><span id="cmTitle">Compartimiento</span><button class="iconb" id="cmClose">✕</button></h3>
+    <div class="grid2">
+      <div class="field"><label>Temp °C</label><input class="mono" id="cTemp" inputmode="decimal" placeholder="—"><div class="whint" id="w_cTemp"></div></div>
+      <div class="field"><label>Vol Feed (por gotero)</label><input class="mono" id="cVolF" inputmode="numeric" placeholder="—"><div class="whint" id="w_cVolF"></div></div>
+      <div class="field"><label>pH Feed</label><input class="mono" id="cPhF" inputmode="decimal" placeholder="—"><div class="whint" id="w_cPhF"></div></div>
+      <div class="field"><label>EC Feed</label><input class="mono" id="cEcF" inputmode="decimal" placeholder="—"><div class="whint" id="w_cEcF"></div></div>
+    </div>
+    <div class="kv" style="margin:6px 0 12px"><span>% Drain (calculado)</span><b id="cPct" style="color:var(--accent);font-size:15px">—</b></div>
+    <div class="kv" style="border:none;margin-top:-8px;margin-bottom:12px;color:var(--dim2);font-size:11px"><span>Goteros usados: <b id="cDrip" class="mono">—</b></span><span>Drain de fase: <b id="cDrainRef" class="mono">—</b></span></div>
+    <button class="btn" id="cmSave">Registrar</button>
+    <button class="btn gho" id="cmDelete" style="margin-top:8px;display:none;color:var(--err);border-color:var(--err)">Eliminar registro</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   AGRIVILLE AGUAS — Registro diario de drenaje de irrigación
+   Espejo arquitectónico del registro de cosecha.
+   Backend: Google Sheets vía Apps Script. Offline: localStorage.
+   ============================================================ */
+
+/* ---- FASES + COMPARTIMIENTOS ---- */
+const PHASES = [
+  {id:'Agriville 1',  short:'A1', v:'A1', comps:['Comp 11','Comp 12','Comp 13','Comp 14','Comp 15','Comp 16','Comp 17','Comp 18']},
+  {id:'Agriville 2',  short:'A2', v:'A2', comps:['Comp 21','Comp 22','Comp 23','Comp 24','Comp 25','Comp 26','Comp 27','Comp 28']},
+  {id:'Agriville 3 N',short:'3N', v:'3N', comps:['Comp 1','Comp 2','Comp 3','Comp 4','Comp 5','Comp 6']},
+  {id:'Agriville 3 S',short:'3S', v:'3S', comps:['Comp 7','Comp 8','Comp 9','Comp 10','Comp 11','Comp 12']},
+  {id:'Agriville 4',  short:'A4', v:'A4', comps:['Comp 35','Comp 36','Comp 37','Comp 38']},
+  {id:'Agriville 5',  short:'A5', v:'A5', comps:['Comp 33','Comp 34']},
+];
+const PHC = { // colores por fase (mismo sistema que cosecha)
+  'A1':{b:'var(--A1b)',f:'var(--A1f)'}, 'A2':{b:'var(--A2b)',f:'var(--A2f)'},
+  '3N':{b:'var(--3Nb)',f:'var(--3Nf)'}, '3S':{b:'var(--3Sb)',f:'var(--3Sf)'},
+  'A4':{b:'var(--A4b)',f:'var(--A4f)'}, 'A5':{b:'var(--A5b)',f:'var(--A5f)'},
+};
+
+/* ---- GOTEROS (SNAPSHOT · llave fase|comp) ----
+   EDITAR SOLO AL CAMBIO DE CULTIVO O FIN DE TEMPORADA, luego redesplegar.
+   Se usa fase+comp como llave: "Comp 11" y "Comp 12" existen en A1 y en 3S. */
+const DRIPPERS = {
+  'Agriville 1|Comp 11':9,'Agriville 1|Comp 12':9,'Agriville 1|Comp 13':9,'Agriville 1|Comp 14':9,
+  'Agriville 1|Comp 15':9,'Agriville 1|Comp 16':9,'Agriville 1|Comp 17':9,'Agriville 1|Comp 18':9,
+  'Agriville 2|Comp 21':11,'Agriville 2|Comp 22':11,'Agriville 2|Comp 23':11,'Agriville 2|Comp 24':11,
+  'Agriville 2|Comp 25':11,'Agriville 2|Comp 26':11,'Agriville 2|Comp 27':11,'Agriville 2|Comp 28':11,
+  'Agriville 3 N|Comp 1':12,'Agriville 3 N|Comp 2':12,'Agriville 3 N|Comp 3':12,
+  'Agriville 3 N|Comp 4':12,'Agriville 3 N|Comp 5':12,'Agriville 3 N|Comp 6':12,
+  'Agriville 3 S|Comp 7':12,'Agriville 3 S|Comp 8':12,'Agriville 3 S|Comp 9':12,
+  'Agriville 3 S|Comp 10':12,'Agriville 3 S|Comp 11':12,'Agriville 3 S|Comp 12':12,
+  'Agriville 4|Comp 35':10,'Agriville 4|Comp 36':10,'Agriville 4|Comp 37':10,'Agriville 4|Comp 38':10,
+  'Agriville 5|Comp 33':13,'Agriville 5|Comp 34':13,
+};
+
+/* ---- RANGOS DE VALIDACIÓN (marca amarilla, no bloquea) ---- */
+const RANGES = {
+  temp:[12,30], phFeed:[4.5,7.5], ecFeed:[1.5,4.5],
+  phDrain:[4.5,7.5], ecDrain:[2.0,7.0], volFeed:[100,5000], volDrain:[100,20000]
+};
+
+/* ---- localStorage keys ---- */
+const K_CFG='aw_c', K_QUEUE='aw_q', K_ENTRIES='aw_e', K_DRAIN='aw_drain';
+
+/* ---- estado ---- */
+let cfg = load(K_CFG,{name:'',url:''});
+let entries = load(K_ENTRIES,[]);      // cache local de registros
+let queue = load(K_QUEUE,[]);          // pendientes de sync
+let drainStore = load(K_DRAIN,{});     // {date:{phaseId:{ph,ec,vol}}}
+let curPhase=null, curComp=null, editingId=null;
+
+/* ==== helpers ==== */
+function load(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function $(s){return document.querySelector(s)}
+function el(id){return document.getElementById(id)}
+function today(){return new Date().toISOString().slice(0,10)}
+function isoWeek(d){const t=new Date(d);t.setHours(0,0,0,0);t.setDate(t.getDate()+3-((t.getDay()+6)%7));const w1=new Date(t.getFullYear(),0,4);return 1+Math.round(((t-w1)/864e5-3+((w1.getDay()+6)%7))/7)}
+function dripKey(ph,c){return ph+'|'+c}
+function drippersFor(ph,c){return DRIPPERS[dripKey(ph,c)] ?? null}
+function num(v){const n=parseFloat(v);return isNaN(n)?null:n}
+function toast(msg,cls){const t=el('toast');t.textContent=msg;t.className='toast on '+(cls||'');setTimeout(()=>t.className='toast',1800)}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function pctDrain(volDrain,drip,volFeed){if(!volDrain||!drip||!volFeed)return null;return (volDrain/drip/volFeed)*100}
+
+/* ==== SYNC INDICATOR ==== */
+function setSync(state,txt){const d=el('syncDot');d.className='dot '+state;el('syncTxt').textContent=txt}
+function refreshSync(){
+  if(!cfg.url){setSync('','config');return}
+  if(queue.length){setSync('pending','pend '+queue.length)}
+  else{setSync('ok','ok')}
+}
+
+/* ==== POST al Apps Script (patrón anti-CORS: text/plain + redirect) ==== */
+async function post(data){
+  if(!cfg.url) throw new Error('sin URL');
+  const r = await fetch(cfg.url,{
+    method:'POST',
+    headers:{'Content-Type':'text/plain'},
+    body:JSON.stringify(data),
+    redirect:'follow'
+  });
+  return r.json().catch(()=>({ok:true}));
+}
+
+/* ==== enviar un registro (o encolar) ==== */
+async function sendEntry(entry){
+  if(!cfg.url){queue.push(entry);save(K_QUEUE,queue);refreshSync();return}
+  setSync('busy','sync');
+  try{
+    await post({action:'add',entry});
+    refreshSync();
+  }catch(e){
+    queue.push(entry);save(K_QUEUE,queue);refreshSync();
+  }
+}
+
+/* ==== flush cola ==== */
+async function flushQueue(){
+  if(!cfg.url||!queue.length)return;
+  setSync('busy','sync');
+  try{
+    await post({action:'addBatch',entries:queue});
+    queue=[];save(K_QUEUE,queue);
+    toast('Cola sincronizada','ok');
+  }catch(e){toast('Sin conexión','err')}
+  refreshSync();
+}
+
+/* ==== TABS ==== */
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.pg').forEach(x=>x.classList.remove('on'));
+  t.classList.add('on'); el(t.dataset.pg).classList.add('on');
+  if(t.dataset.pg==='pgSum')renderSummary();
+  if(t.dataset.pg==='pgCfg')renderConfig();
+}));
+
+/* ==== FASE chips ==== */
+function renderPhaseChips(){
+  const box=el('phChips'); box.innerHTML='';
+  const d=el('regDate').value;
+  PHASES.forEach(p=>{
+    const done=entries.filter(e=>e.date===d&&e.phase===p.id).length;
+    const c=PHC[p.v];
+    const b=document.createElement('button');
+    b.className='phchip'+(curPhase&&curPhase.id===p.id?' on':'');
+    b.style.background=c.b; b.style.color=c.f;
+    if(curPhase&&curPhase.id===p.id)b.style.borderColor=c.f;
+    b.innerHTML=`${p.id}<span class="cnt" style="color:${c.f};opacity:.85">${done}/${p.comps.length}</span>`;
+    b.onclick=()=>selectPhase(p);
+    box.appendChild(b);
+  });
+}
+
+function selectPhase(p){
+  curPhase=p;
+  el('phaseArea').style.display='block';
+  el('phName').textContent=p.id;
+  const c=PHC[p.v];
+  const db=el('phaseArea').querySelector('.card'); // drain card is first
+  // load stored phase drain for this date+phase
+  const d=el('regDate').value;
+  const ds=(drainStore[d]&&drainStore[d][p.id])||{};
+  el('dPh').value=ds.ph??''; el('dEc').value=ds.ec??''; el('dVol').value=ds.vol??'';
+  renderPhaseChips();
+  renderCompList();
+  window.scrollTo({top:el('phaseArea').offsetTop-70,behavior:'smooth'});
+}
+
+/* persist phase drain on edit */
+['dPh','dEc','dVol'].forEach(id=>el(id).addEventListener('input',()=>{
+  if(!curPhase)return;
+  const d=el('regDate').value;
+  drainStore[d]=drainStore[d]||{};
+  drainStore[d][curPhase.id]={ph:el('dPh').value,ec:el('dEc').value,vol:el('dVol').value};
+  save(K_DRAIN,drainStore);
+  validateField('dPh','phDrain'); validateField('dEc','ecDrain'); validateField('dVol','volDrain');
+}));
+
+function currentPhaseDrain(){
+  const d=el('regDate').value;
+  const ds=(drainStore[d]&&curPhase&&drainStore[d][curPhase.id])||{};
+  return {ph:num(ds.ph),ec:num(ds.ec),vol:num(ds.vol)};
+}
+
+/* ==== lista de compartimientos ==== */
+function renderCompList(){
+  const box=el('compList'); box.innerHTML='';
+  const d=el('regDate').value;
+  const dr=currentPhaseDrain();
+  curPhase.comps.forEach(cn=>{
+    const rec=entries.find(e=>e.date===d&&e.phase===curPhase.id&&e.compartment===cn);
+    const drip=drippersFor(curPhase.id,cn);
+    const row=document.createElement('div'); row.className='comprow';
+    const pd = rec ? rec.pct_drain : null;
+    row.innerHTML=`
+      <div class="cn">${cn}<small>${drip??'?'} goteros</small></div>
+      ${rec?`<span class="pd">${pd!=null?pd.toFixed(1)+'%':'—'}</span><span class="st done">✓ hecho</span>`
+           :`<span class="st pend">pendiente</span>`}`;
+    row.onclick=()=>openComp(cn,rec);
+    box.appendChild(row);
+  });
+}
+
+/* ==== modal de compartimiento ==== */
+function openComp(cn,rec){
+  curComp=cn; editingId=rec?rec.id:null;
+  const drip=drippersFor(curPhase.id,cn);
+  const dr=currentPhaseDrain();
+  el('cmTitle').textContent=`${curPhase.id} · ${cn}`;
+  el('cTemp').value=rec?rec.temp??'':'';
+  el('cVolF').value=rec?rec.vol_feed??'':'';
+  el('cPhF').value=rec?rec.ph_feed??'':'';
+  el('cEcF').value=rec?rec.ec_feed??'':'';
+  el('cDrip').textContent=drip??'?';
+  el('cDrainRef').textContent=dr.vol!=null?dr.vol+' mL':'sin drain';
+  el('cmDelete').style.display=rec?'block':'none';
+  el('cmSave').textContent=rec?'Guardar cambios':'Registrar';
+  ['w_cTemp','w_cVolF','w_cPhF','w_cEcF'].forEach(w=>el(w).textContent='');
+  updatePct();
+  el('compModal').classList.add('on');
+}
+function closeComp(){el('compModal').classList.remove('on');curComp=null;editingId=null}
+el('cmClose').onclick=closeComp;
+el('compModal').addEventListener('click',e=>{if(e.target===el('compModal'))closeComp()});
+
+['cTemp','cVolF','cPhF','cEcF'].forEach(id=>el(id).addEventListener('input',()=>{
+  const map={cTemp:'temp',cVolF:'volFeed',cPhF:'phFeed',cEcF:'ecFeed'};
+  validateField(id,map[id]); updatePct();
+}));
+
+function updatePct(){
+  const drip=drippersFor(curPhase.id,curComp);
+  const dr=currentPhaseDrain();
+  const vf=num(el('cVolF').value);
+  const p=pctDrain(dr.vol,drip,vf);
+  el('cPct').textContent=p!=null?p.toFixed(1)+'%':'—';
+}
+
+/* validación genérica */
+function validateField(inputId,rangeKey){
+  const inp=el(inputId), w=el('w_'+inputId), r=RANGES[rangeKey];
+  const v=num(inp.value);
+  if(v==null||!r){inp.classList.remove('warn');if(w)w.textContent='';return true}
+  if(v<r[0]||v>r[1]){inp.classList.add('warn');if(w)w.textContent=`fuera de ${r[0]}–${r[1]}`;return false}
+  inp.classList.remove('warn');if(w)w.textContent='';return true
+}
+
+/* ==== guardar compartimiento ==== */
+el('cmSave').onclick=async ()=>{
+  const dr=currentPhaseDrain();
+  if(dr.vol==null){toast('Falta el Vol Drain de la fase','err');return}
+  const drip=drippersFor(curPhase.id,curComp);
+  const temp=num(el('cTemp').value), vf=num(el('cVolF').value),
+        phf=num(el('cPhF').value), ecf=num(el('cEcF').value);
+  if(vf==null){toast('Falta Vol Feed','err');return}
+  const d=el('regDate').value;
+  const rec={
+    id: editingId||uid(),
+    date:d, year:new Date(d).getFullYear(), week:isoWeek(d),
+    phase:curPhase.id, compartment:curComp,
+    temp, ph_feed:phf, ec_feed:ecf,
+    ph_drain:dr.ph, ec_drain:dr.ec,
+    vol_feed:vf, vol_drain:dr.vol,
+    drippers:drip,
+    pct_drain: pctDrain(dr.vol,drip,vf),
+    user:cfg.name||'—', timestamp:new Date().toISOString()
+  };
+  // upsert local
+  const ix=entries.findIndex(e=>e.id===rec.id);
+  if(ix>=0)entries[ix]=rec; else entries.push(rec);
+  save(K_ENTRIES,entries);
+  // sync
+  if(editingId){ syncUpdate(rec); } else { sendEntry(rec); }
+  closeComp(); renderCompList(); renderPhaseChips();
+  toast(editingId?'Actualizado':'✓ '+curComp,'ok');
+};
+
+async function syncUpdate(rec){
+  if(!cfg.url){queue.push(rec);save(K_QUEUE,queue);refreshSync();return}
+  setSync('busy','sync');
+  try{ await post({action:'update',entry:rec}); refreshSync(); }
+  catch(e){ queue.push(rec);save(K_QUEUE,queue);refreshSync(); }
+}
+
+/* ==== eliminar ==== */
+el('cmDelete').onclick=async ()=>{
+  if(!editingId)return;
+  if(!confirm('¿Eliminar este registro?'))return;
+  entries=entries.filter(e=>e.id!==editingId);save(K_ENTRIES,entries);
+  if(cfg.url){try{await post({action:'delete',id:editingId})}catch(e){}}
+  closeComp();renderCompList();renderPhaseChips();renderSummary();
+  toast('Eliminado','ok');
+};
+
+/* ==== RESUMEN ==== */
+function renderSummary(){
+  const d=el('regDate').value||today();
+  const prog=el('todayProg'); prog.innerHTML='';
+  PHASES.forEach(p=>{
+    const done=entries.filter(e=>e.date===d&&e.phase===p.id).length;
+    const c=PHC[p.v]; const pctW=Math.round(done/p.comps.length*100);
+    const div=document.createElement('div');
+    div.style.cssText='margin-bottom:10px';
+    div.innerHTML=`
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+        <span style="color:${c.f};font-weight:600">${p.id}</span>
+        <span class="mono" style="color:var(--dim)">${done}/${p.comps.length}</span>
+      </div>
+      <div style="height:7px;background:var(--panel2);border-radius:4px;overflow:hidden">
+        <div style="height:100%;width:${pctW}%;background:${c.f};opacity:.85"></div>
+      </div>`;
+    prog.appendChild(div);
+  });
+  // log
+  const log=el('todayLog'); const rows=entries.filter(e=>e.date===d)
+    .sort((a,b)=>b.timestamp.localeCompare(a.timestamp));
+  if(!rows.length){log.innerHTML='<div class="empty">Sin registros para esta fecha.</div>';return}
+  log.innerHTML='';
+  rows.forEach(e=>{
+    const v=PHASES.find(p=>p.id===e.phase)?.v||'A1'; const c=PHC[v];
+    const r=document.createElement('div'); r.className='logrow';
+    r.innerHTML=`
+      <span class="tag" style="background:${c.b};color:${c.f}">${e.phase.replace('Agriville ','A')}</span>
+      <div class="info"><b>${e.compartment}</b>
+        <small>${e.pct_drain!=null?e.pct_drain.toFixed(1)+'% drain':'—'} · feed ${e.vol_feed} · ${e.drippers??'?'} got · EC ${e.ec_feed??'—'}</small></div>
+      <div class="act"><button class="iconb" data-ed="${e.id}">✏️</button></div>`;
+    log.appendChild(r);
+  });
+  log.querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>{
+    const e=entries.find(x=>x.id===b.dataset.ed);
+    const p=PHASES.find(x=>x.id===e.phase);
+    curPhase=p; selectPhase(p);
+    // ensure phase drain reflects this record
+    const dd=el('regDate').value; drainStore[dd]=drainStore[dd]||{};
+    drainStore[dd][p.id]={ph:e.ph_drain,ec:e.ec_drain,vol:e.vol_drain}; save(K_DRAIN,drainStore);
+    document.querySelector('.tab[data-pg="pgReg"]').click();
+    openComp(e.compartment,e);
+  });
+}
+
+/* ==== CONFIG ==== */
+function renderConfig(){
+  el('cfgName').value=cfg.name||''; el('cfgUrl').value=cfg.url||'';
+  el('qCount').textContent=queue.length; el('eCount').textContent=entries.length;
+  // drippers table
+  const t=el('drTable');
+  t.innerHTML='<tr><th>Fase</th><th>Comp</th><th>Goteros</th></tr>';
+  Object.keys(DRIPPERS).forEach(k=>{
+    const [ph,c]=k.split('|');
+    t.innerHTML+=`<tr><td>${ph.replace('Agriville ','A')}</td><td>${c}</td><td>${DRIPPERS[k]}</td></tr>`;
+  });
+  el('gsCode').textContent=APPS_SCRIPT;
+}
+el('btnSaveCfg').onclick=()=>{
+  cfg={name:el('cfgName').value.trim(),url:el('cfgUrl').value.trim()};
+  save(K_CFG,cfg); refreshSync(); el('cfgMsg').textContent='Guardado ✓';
+  el('cfgMsg').style.color='var(--ok)'; setTimeout(()=>el('cfgMsg').textContent='',2000);
+};
+el('btnTest').onclick=async ()=>{
+  cfg={name:el('cfgName').value.trim(),url:el('cfgUrl').value.trim()};save(K_CFG,cfg);
+  if(!cfg.url){el('cfgMsg').textContent='Falta la URL';el('cfgMsg').style.color='var(--err)';return}
+  el('cfgMsg').textContent='Probando…';el('cfgMsg').style.color='var(--dim)';
+  try{const r=await fetch(cfg.url,{method:'GET',redirect:'follow'});await r.json();
+    el('cfgMsg').textContent='Conexión OK ✓';el('cfgMsg').style.color='var(--ok)';refreshSync();}
+  catch(e){el('cfgMsg').textContent='No se pudo conectar';el('cfgMsg').style.color='var(--err)'}
+};
+el('btnSync').onclick=flushQueue;
+el('btnPull').onclick=async ()=>{
+  if(!cfg.url){toast('Falta URL','err');return}
+  setSync('busy','pull');
+  try{
+    const r=await fetch(cfg.url,{method:'GET',redirect:'follow'});
+    const j=await r.json();
+    if(j.entries){entries=j.entries.map(e=>({...e,
+      temp:e.temp!=null?+e.temp:null, ph_feed:e.ph_feed!=null?+e.ph_feed:null,
+      ec_feed:e.ec_feed!=null?+e.ec_feed:null, ph_drain:e.ph_drain!=null?+e.ph_drain:null,
+      ec_drain:e.ec_drain!=null?+e.ec_drain:null, vol_feed:+e.vol_feed, vol_drain:+e.vol_drain,
+      drippers:e.drippers!=null?+e.drippers:null, pct_drain:e.pct_drain!=null?+e.pct_drain:null}));
+      save(K_ENTRIES,entries);toast('Datos traídos','ok');renderSummary();}
+  }catch(e){toast('Error al traer','err')}
+  refreshSync();
+};
+el('btnCopyGS').onclick=()=>{navigator.clipboard.writeText(APPS_SCRIPT).then(()=>toast('Código copiado','ok'))};
+
+/* ==== APPS SCRIPT (backend) ==== */
+const APPS_SCRIPT = `// === Agriville Aguas — backend Apps Script ===
+// Pega esto en Extensiones > Apps Script del Sheet "Agriville Aguas 2026".
+// Despliega: Implementar > Nueva implementación > Aplicación web
+//   Ejecutar como: Yo  |  Acceso: Cualquiera. Copia la URL /exec.
+const SHEET = 'Registros';
+const COLS = ['id','date','year','week','phase','compartment','temp',
+  'ph_feed','ec_feed','ph_drain','ec_drain','vol_feed','vol_drain',
+  'drippers','pct_drain','user','timestamp'];
+
+function sh(){
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let s = ss.getSheetByName(SHEET);
+  if(!s){ s = ss.insertSheet(SHEET); s.appendRow(COLS); }
+  if(s.getLastRow()===0) s.appendRow(COLS);
+  return s;
+}
+function rowFrom(e){ return COLS.map(c => e[c]!==undefined && e[c]!==null ? e[c] : ''); }
+
+function doPost(ev){
+  const d = JSON.parse(ev.postData.contents);
+  const s = sh();
+  if(d.action==='add'){ s.appendRow(rowFrom(d.entry)); }
+  else if(d.action==='addBatch'){ (d.entries||[]).forEach(e => s.appendRow(rowFrom(e))); }
+  else if(d.action==='update'){
+    const ids = s.getRange(2,1,Math.max(s.getLastRow()-1,1),1).getValues().flat();
+    const r = ids.indexOf(d.entry.id);
+    if(r>=0) s.getRange(r+2,1,1,COLS.length).setValues([rowFrom(d.entry)]);
+  }
+  else if(d.action==='delete'){
+    const ids = s.getRange(2,1,Math.max(s.getLastRow()-1,1),1).getValues().flat();
+    const r = ids.indexOf(d.id);
+    if(r>=0) s.deleteRow(r+2);
+  }
+  return ContentService.createTextOutput(JSON.stringify({ok:true}))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+function doGet(){
+  const s = sh();
+  const vals = s.getDataRange().getValues();
+  const head = vals.shift();
+  const entries = vals.map(r => { const o={}; head.forEach((h,i)=>o[h]=r[i]); return o; });
+  return ContentService.createTextOutput(JSON.stringify({entries}))
+    .setMimeType(ContentService.MimeType.JSON);
+}`;
+
+/* ==== INIT ==== */
+function initApp(){
+  el('regDate').value=today();
+  el('regDate').addEventListener('change',()=>{
+    if(curPhase)selectPhase(curPhase); else renderPhaseChips();
+  });
+  renderPhaseChips();
+  refreshSync();
+  // intento silencioso de flush al abrir
+  if(cfg.url&&queue.length)flushQueue();
+  window.addEventListener('online',flushQueue);
+}
+initApp();
+</script>
+</body>
+</html>
