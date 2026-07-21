@@ -90,6 +90,7 @@
   .comprow .st{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:4px 8px;border-radius:7px}
   .comprow .st.pend{color:var(--dim);background:rgba(139,148,158,.12)}
   .comprow .st.done{color:var(--ok);background:rgba(63,185,80,.14)}
+  .comprow .st.nodr{color:var(--warn);background:rgba(210,153,34,.15)}
   .comprow .pd{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;min-width:52px;text-align:right}
   .tabs{position:fixed;bottom:0;left:0;right:0;z-index:30;display:flex;background:var(--panel);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
   .tab{flex:1;background:none;padding:10px 4px 12px;color:var(--dim2);font-size:11px;display:flex;flex-direction:column;align-items:center;gap:3px;font-weight:600}
@@ -150,7 +151,7 @@
     <div id="phaseArea" style="display:none">
       <div class="card" id="drainCard">
         <h2>Drenaje de fase — <span id="phName" class="mono"></span></h2>
-        <div class="banner i"><span>💧</span><span>El drenaje se mide UNA vez por fase (escala única) y aplica a todos sus compartimientos hoy.</span></div>
+        <div class="banner i"><span>💧</span><span>El drenaje se mide UNA vez por fase (escala única). Puedes registrarlo <b>antes o después</b> de los compartimientos — al ingresarlo se aplica a todos ellos.</span></div>
         <div class="grid3">
           <div class="field"><label>pH Drain</label><input class="mono" id="dPh" inputmode="decimal" placeholder="—"><div class="whint" id="w_dPh"></div></div>
           <div class="field"><label>EC Drain</label><input class="mono" id="dEc" inputmode="decimal" placeholder="—"><div class="whint" id="w_dEc"></div></div>
@@ -404,6 +405,7 @@ function selectPhase(p){
   drainStore[d][curPhase.id]={ph:el('dPh').value,ec:el('dEc').value,vol:el('dVol').value};
   save(K_DRAIN,drainStore);
   validateField('dPh','phDrain'); validateField('dEc','ecDrain'); validateField('dVol','volDrain');
+  scheduleBackfill();
 }));
 
 function currentPhaseDrain(){
@@ -422,9 +424,12 @@ function renderCompList(){
     const drip=drippersFor(curPhase.id,cn);
     const row=document.createElement('div'); row.className='comprow';
     const pd = rec ? rec.pct_drain : null;
+    const noDrain = rec && rec.vol_drain==null;
     row.innerHTML=`
       <div class="cn">${cn}<small>${drip??'?'} goteros</small></div>
-      ${rec?`<span class="pd">${pd!=null?pd.toFixed(1)+'%':'—'}</span><span class="st done">✓ hecho</span>`
+      ${rec?(noDrain
+          ?`<span class="st nodr">✓ falta drenaje</span>`
+          :`<span class="pd">${pd!=null?pd.toFixed(1)+'%':'—'}</span><span class="st done">✓ hecho</span>`)
            :`<span class="st pend">pendiente</span>`}`;
     row.onclick=()=>openComp(cn,rec);
     box.appendChild(row);
@@ -468,7 +473,10 @@ function updatePct(){
   const dr=currentPhaseDrain();
   const vf=num(el('cVolF').value);
   const p=pctDrain(dr.vol,drip,vf);
-  el('cPct').textContent=p!=null?p.toFixed(1)+'%':'—';
+  const box=el('cPct');
+  if(p!=null){ box.textContent=p.toFixed(1)+'%'; box.style.opacity='1'; }
+  else if(dr.vol==null){ box.textContent='al medir drenaje'; box.style.opacity='.6'; }
+  else { box.textContent='—'; box.style.opacity='.6'; }
 }
 
 /* validación genérica */
@@ -483,7 +491,6 @@ function validateField(inputId,rangeKey){
 /* ==== guardar compartimiento ==== */
 el('cmSave').onclick=async ()=>{
   const dr=currentPhaseDrain();
-  if(dr.vol==null){toast('Falta el Vol Drain de la fase','err');return}
   const drip=drippersFor(curPhase.id,curComp);
   const temp=num(el('cTemp').value), vf=num(el('cVolF').value),
         phf=num(el('cPhF').value), ecf=num(el('cEcF').value);
@@ -509,6 +516,30 @@ el('cmSave').onclick=async ()=>{
   closeComp(); renderCompList(); renderPhaseChips();
   toast(editingId?'Actualizado':'✓ '+curComp,'ok');
 };
+
+/* ==== BACKFILL: aplica el drenaje de fase a los compartimientos ya guardados ====
+   Permite que el helper registre compartimientos ANTES de llegar a la escala.
+   Al ingresar (o corregir) el drenaje, se propaga y se recalcula el % Drain. */
+let backfillTimer=null;
+function scheduleBackfill(){clearTimeout(backfillTimer);backfillTimer=setTimeout(backfillPhaseDrain,900)}
+
+async function backfillPhaseDrain(){
+  if(!curPhase)return;
+  const d=el('regDate').value;
+  const dr=currentPhaseDrain();
+  if(dr.vol==null)return;                       // aún no hay drenaje que aplicar
+  const targets=entries.filter(e=>e.date===d && e.phase===curPhase.id &&
+      (e.vol_drain!==dr.vol || e.ph_drain!==dr.ph || e.ec_drain!==dr.ec));
+  if(!targets.length)return;
+  targets.forEach(e=>{
+    e.ph_drain=dr.ph; e.ec_drain=dr.ec; e.vol_drain=dr.vol;
+    e.pct_drain=pctDrain(dr.vol,e.drippers,e.vol_feed);
+  });
+  save(K_ENTRIES,entries);
+  renderCompList(); renderPhaseChips();
+  toast(`Drenaje aplicado a ${targets.length} comp.`,'ok');
+  for(const e of targets){ await syncUpdate(e); }
+}
 
 async function syncUpdate(rec){
   if(!cfg.url){queue.push(rec);save(K_QUEUE,queue);refreshSync();return}
@@ -557,7 +588,7 @@ function renderSummary(){
     r.innerHTML=`
       <span class="tag" style="background:${c.b};color:${c.f}">${e.phase.replace('Agriville ','A')}</span>
       <div class="info"><b>${e.compartment}</b>
-        <small>${e.pct_drain!=null?e.pct_drain.toFixed(1)+'% drain':'—'} · feed ${e.vol_feed} · ${e.drippers??'?'} got · EC ${e.ec_feed??'—'}</small></div>
+        <small>${e.vol_drain==null?'<span style="color:var(--warn)">falta drenaje</span>':(e.pct_drain!=null?e.pct_drain.toFixed(1)+'% drain':'—')} · feed ${e.vol_feed} · ${e.drippers??'?'} got · EC ${e.ec_feed??'—'}</small></div>
       <div class="act"><button class="iconb" data-ed="${e.id}">✏️</button></div>`;
     log.appendChild(r);
   });
