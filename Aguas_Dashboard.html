@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d1117">
+<title>Agriville Aguas · Análisis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c232c; --line:#2a323d;
+    --txt:#e6edf3; --dim:#8b949e; --dim2:#6e7681;
+    --accent:#58c4dc; --ok:#3fb950; --warn:#d29922; --err:#f85149;
+    --A1:#5ab8e0; --A2:#4dcf7a; --3N:#9b7de8; --3S:#e87d7d; --A4:#d4b84a; --A5:#d4874a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{background:var(--bg);color:var(--txt);font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:14px;line-height:1.45;padding-bottom:70px}
+  .mono{font-family:'IBM Plex Mono',monospace}
+  header{position:sticky;top:0;z-index:20;background:#0d1117;border-bottom:1px solid var(--line);padding:11px 14px}
+  .htop{display:flex;align-items:center;justify-content:space-between;gap:10px;max-width:1100px;margin:0 auto}
+  .brand{font-weight:700;font-size:16px}
+  .brand small{color:var(--dim);font-weight:500;font-size:11.5px;display:block}
+  .hact{display:flex;gap:7px;align-items:center}
+  .pill{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:6px 10px;border-radius:20px;background:var(--panel);border:1px solid var(--line);color:var(--dim);white-space:nowrap}
+  .pill.ok{color:var(--ok);border-color:rgba(63,185,80,.4)}
+  .pill.err{color:var(--err);border-color:rgba(248,81,73,.4)}
+  main{padding:14px;max-width:1100px;margin:0 auto}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:15px;margin-bottom:13px}
+  .card h2{font-size:11.5px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:13px;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:10px}
+  button{cursor:pointer;font-family:'IBM Plex Sans',sans-serif;border:none}
+  .btn{background:var(--accent);color:#04141a;font-weight:700;font-size:14px;padding:10px 16px;border-radius:10px}
+  .btn.sec{background:var(--panel2);color:var(--txt);border:1px solid var(--line);font-weight:600}
+  .btn.sm{padding:7px 12px;font-size:12.5px}
+  input,select{background:var(--panel2);border:1px solid var(--line);border-radius:9px;color:var(--txt);padding:9px 11px;font-size:14px;font-family:'IBM Plex Mono',monospace}
+  input:focus,select:focus{outline:none;border-color:var(--accent)}
+  select{font-family:'IBM Plex Sans',sans-serif}
+
+  /* KPI */
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+  .kpi{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px 13px}
+  .kpi .lab{font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--dim2);font-weight:600;margin-bottom:5px}
+  .kpi .val{font-family:'IBM Plex Mono',monospace;font-size:23px;font-weight:600;line-height:1.1}
+  .kpi .sub{font-size:11px;color:var(--dim);margin-top:3px;font-family:'IBM Plex Mono',monospace}
+
+  /* chips */
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{padding:7px 12px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);font-size:12.5px;font-weight:600;color:var(--dim2);transition:.12s}
+  .chip.on{color:#0d1117}
+  .seg{display:flex;background:var(--panel2);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .seg button{background:none;color:var(--dim);padding:8px 13px;font-size:12.5px;font-weight:600}
+  .seg button.on{background:var(--accent);color:#04141a}
+
+  .ctrls{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-bottom:13px}
+  .ctrls label{font-size:11px;color:var(--dim2);text-transform:uppercase;letter-spacing:.6px;font-weight:600}
+
+  /* chart */
+  .chartbox{width:100%;overflow:hidden}
+  svg.chart{width:100%;height:auto;display:block}
+  .lg{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px;font-size:11.5px;color:var(--dim)}
+  .lg i{display:inline-block;width:11px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
+
+  /* table */
+  .tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;font-size:12px;white-space:nowrap}
+  th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right}
+  th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}
+  th{color:var(--dim);font-size:10px;text-transform:uppercase;letter-spacing:.6px;font-weight:600;position:sticky;top:0;background:var(--panel);cursor:pointer}
+  tbody tr:hover{background:var(--panel2)}
+  .ph{display:inline-block;padding:2px 7px;border-radius:6px;font-size:10.5px;font-weight:600}
+  .miss{color:var(--warn)}
+
+  .pg{display:none} .pg.on{display:block}
+  .tabs{position:fixed;bottom:0;left:0;right:0;z-index:30;display:flex;background:var(--panel);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+  .tab{flex:1;background:none;padding:10px 4px 12px;color:var(--dim2);font-size:11px;display:flex;flex-direction:column;align-items:center;gap:3px;font-weight:600}
+  .tab .ic{font-size:19px;line-height:1}
+  .tab.on{color:var(--accent)}
+  .empty{text-align:center;color:var(--dim2);padding:34px 14px;font-size:13px;line-height:1.6}
+  .note{font-size:11.5px;color:var(--dim2);line-height:1.5;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+  .bar{height:6px;background:var(--panel2);border-radius:3px;overflow:hidden;margin-top:4px}
+  .bar i{display:block;height:100%}
+
+  /* ---- tarjetas de fase con lecturas protagonistas ---- */
+  .phcard{background:var(--panel2);border:1px solid var(--line);border-radius:13px;padding:13px 14px 14px;margin-bottom:11px;border-left-width:4px}
+  .phcard .top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:11px}
+  .phcard .nm{font-weight:700;font-size:15px;letter-spacing:.2px}
+  .phcard .cnt{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim2)}
+  .reads{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
+  .rd{background:rgba(0,0,0,.22);border-radius:10px;padding:9px 10px 10px;text-align:center}
+  .rd .lb{font-size:9.5px;text-transform:uppercase;letter-spacing:1px;color:var(--dim2);font-weight:700;margin-bottom:6px}
+  .rd .pair{display:flex;align-items:baseline;justify-content:center;gap:5px;font-family:'IBM Plex Mono',monospace;line-height:1.05}
+  .rd .fe{font-size:19px;font-weight:500;color:var(--dim)}
+  .rd .ar{font-size:12px;color:var(--dim2)}
+  .rd .dr{font-size:25px;font-weight:600}
+  .rd .one{font-family:'IBM Plex Mono',monospace;font-size:27px;font-weight:600;line-height:1.05}
+  .rd .sub{font-size:9.5px;color:var(--dim2);margin-top:5px;letter-spacing:.4px}
+  @media(max-width:560px){
+    .reads{gap:7px}
+    .rd{padding:8px 5px 9px}
+    .rd .fe{font-size:15px} .rd .dr{font-size:20px} .rd .one{font-size:21px}
+    .rd .lb{font-size:9px;letter-spacing:.6px}
+  }
+  .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(18px);background:var(--panel2);border:1px solid var(--line);padding:10px 18px;border-radius:22px;font-size:13px;font-weight:600;opacity:0;transition:.25s;z-index:60;pointer-events:none}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.ok{border-color:var(--ok);color:var(--ok)} .toast.err{border-color:var(--err);color:var(--err)}
+  @media(max-width:600px){ .kpi .val{font-size:20px} main{padding:11px} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="htop">
+    <div class="brand">Agriville Aguas · Análisis<small id="hsub">Cargando…</small></div>
+    <div class="hact">
+      <span class="pill" id="stat">—</span>
+      <button class="btn sec sm" id="btnRef">↻</button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ===================== RESUMEN ===================== -->
+<section class="pg on" id="pgSum">
+  <div class="card">
+    <h2>Últimos 7 días</h2>
+    <div class="kpis" id="kpis"></div>
+  </div>
+
+  <div class="card">
+    <h2>Estado por fase <span class="mono" id="lastDay" style="color:var(--dim2);font-size:11px"></span></h2>
+    <div id="phaseCards"></div>
+  </div>
+
+  <div class="card">
+    <h2>Cobertura de registro <span class="mono" style="color:var(--dim2);font-size:11px">últimos 14 días</span></h2>
+    <div class="tw" id="coverage"></div>
+    <div class="note">Cada celda es un día × fase. Verde = todos los compartimientos registrados · ámbar = parcial · vacío = sin registro. Ayuda a detectar días que se saltaron antes de analizar tendencias.</div>
+  </div>
+</section>
+
+<!-- ===================== TENDENCIAS ===================== -->
+<section class="pg" id="pgTre">
+  <div class="card">
+    <div class="ctrls">
+      <label>Métrica</label>
+      <select id="selMetric"></select>
+      <label>Periodo</label>
+      <div class="seg" id="segRange">
+        <button data-r="14" class="on">14d</button>
+        <button data-r="30">30d</button>
+        <button data-r="90">90d</button>
+        <button data-r="0">Todo</button>
+      </div>
+      <label>Agregación</label>
+      <div class="seg" id="segAgg">
+        <button data-a="d" class="on">Diario</button>
+        <button data-a="w">Semanal</button>
+      </div>
+    </div>
+    <div class="chips" id="phChips" style="margin-bottom:14px"></div>
+    <div class="chartbox" id="chMain"></div>
+    <div class="lg" id="lgMain"></div>
+    <div class="note" id="metricNote"></div>
+  </div>
+
+  <div class="card">
+    <h2>Acumulación en slab · EC drain ÷ EC feed</h2>
+    <div class="chartbox" id="chRatio"></div>
+    <div class="lg" id="lgRatio"></div>
+    <div class="note">Cuánto se concentra la solución en el slab. Un valor de 1.0 significa que el drenaje sale igual que el feed. Valores altos y en ascenso indican acumulación de sales — normalmente asociada a drenaje insuficiente. Es una lectura relativa: importa más la tendencia que el número absoluto.</div>
+  </div>
+
+  <div class="card">
+    <h2>Feed vs Drain · comparación directa</h2>
+    <div class="ctrls">
+      <label>Fase</label><select id="selFdPhase"></select>
+      <label>Variable</label>
+      <div class="seg" id="segFd">
+        <button data-v="ec" class="on">EC</button>
+        <button data-v="ph">pH</button>
+      </div>
+    </div>
+    <div class="chartbox" id="chFd"></div>
+    <div class="lg" id="lgFd"></div>
+  </div>
+</section>
+
+<!-- ===================== DATOS ===================== -->
+<section class="pg" id="pgDat">
+  <div class="card">
+    <div class="ctrls">
+      <label>Fase</label><select id="fPhase"></select>
+      <label>Desde</label><input type="date" id="fFrom">
+      <label>Hasta</label><input type="date" id="fTo">
+      <button class="btn sec sm" id="btnCsv">⬇ CSV</button>
+    </div>
+    <div class="tw"><table id="tbl"></table></div>
+    <div class="note" id="tblNote"></div>
+  </div>
+
+  <div class="card">
+    <h2>Conexión</h2>
+    <div class="ctrls">
+      <input id="cfgUrl" class="mono" placeholder="URL del Apps Script (/exec)" style="flex:1;min-width:220px;font-size:12px">
+      <button class="btn sm" id="btnSaveUrl">Guardar</button>
+    </div>
+    <div class="note">El dashboard lee del mismo Google Sheet que alimenta la app de registro. Solo lectura — nada de lo que hagas aquí modifica los datos.</div>
+  </div>
+</section>
+
+</main>
+
+<div class="tabs">
+  <button class="tab on" data-pg="pgSum"><span class="ic">📊</span>Resumen</button>
+  <button class="tab" data-pg="pgTre"><span class="ic">📈</span>Tendencias</button>
+  <button class="tab" data-pg="pgDat"><span class="ic">🗂️</span>Datos</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   AGRIVILLE AGUAS — Dashboard de análisis
+   Lee del mismo Apps Script / Google Sheet. Solo lectura.
+   Sin dependencias externas: gráficos en SVG propio.
+   ============================================================ */
+
+const PHASES=[
+  {id:'Agriville 1',  s:'A1', v:'A1', n:8, c:'#5ab8e0'},
+  {id:'Agriville 2',  s:'A2', v:'A2', n:8, c:'#4dcf7a'},
+  {id:'Agriville 3 N',s:'3N', v:'3N', n:6, c:'#9b7de8'},
+  {id:'Agriville 3 S',s:'3S', v:'3S', n:6, c:'#e87d7d'},
+  {id:'Agriville 4',  s:'A4', v:'A4', n:4, c:'#d4b84a'},
+  {id:'Agriville 5',  s:'A5', v:'A5', n:2, c:'#d4874a'},
+];
+const PH_BY_ID={}; PHASES.forEach(p=>PH_BY_ID[p.id]=p);
+
+const METRICS=[
+  {k:'ph_drain',  l:'pH Drain',       u:'',    lvl:'phase', note:'pH del drenaje. Priva no tiene sensor de pH en drenaje — esta medición manual es la única fuente de este dato en toda la operación.'},
+  {k:'ec_drain',  l:'EC Drain',       u:'mS/cm',lvl:'phase', note:'Conductividad del drenaje. Una sola medición por fase, tomada en la escala.'},
+  {k:'pct_drain', l:'% Drain',        u:'%',   lvl:'phase', note:'Porcentaje de drenaje. Calculado como (Vol Drain ÷ goteros ÷ Vol Feed) × 100. Al medirse con una sola escala por fase, el valor por compartimiento es una estimación repartida, no una medición individual.'},
+  {k:'ph_feed',   l:'pH Feed',        u:'',    lvl:'comp',  note:'pH del riego, medido por compartimiento.'},
+  {k:'ec_feed',   l:'EC Feed',        u:'mS/cm',lvl:'comp',  note:'Conductividad del riego, medida por compartimiento. Comparable con el A_EC por válvula de Priva.'},
+  {k:'temp',      l:'Temp agua',      u:'°C',  lvl:'comp',  note:'Temperatura del agua de riego por compartimiento.'},
+  {k:'vol_feed',  l:'Vol Feed',       u:'mL',  lvl:'comp',  note:'Volumen de riego por gotero.'},
+];
+
+const K_URL='awd_url';
+let URL_=localStorage.getItem(K_URL)||'';
+let DATA=[];                 // registros normalizados
+let activePhases=new Set(PHASES.map(p=>p.id));
+let range=14, agg='d', metric='pct_drain', fdVar='ec';
+let sortCol='date', sortDir=-1;
+
+/* ---------- utils ---------- */
+const $=id=>document.getElementById(id);
+const n=v=>{const x=parseFloat(v);return isNaN(x)?null:x};
+const fmt=(v,d=1)=>v==null?'—':v.toFixed(d);
+function toast(m,c){const t=$('toast');t.textContent=m;t.className='toast on '+(c||'');setTimeout(()=>t.className='toast',1900)}
+function dstr(d){return d instanceof Date?d.toISOString().slice(0,10):String(d).slice(0,10)}
+function dparse(s){const [y,m,d]=String(s).slice(0,10).split('-').map(Number);return new Date(y,m-1,d)}
+function addDays(d,k){const x=new Date(d);x.setDate(x.getDate()+k);return x}
+function isoWeekKey(s){const t=dparse(s);t.setDate(t.getDate()+3-((t.getDay()+6)%7));
+  const w1=new Date(t.getFullYear(),0,4);
+  const w=1+Math.round(((t-w1)/864e5-3+((w1.getDay()+6)%7))/7);
+  return t.getFullYear()+'-W'+String(w).padStart(2,'0')}
+function mean(a){const v=a.filter(x=>x!=null);return v.length?v.reduce((s,x)=>s+x,0)/v.length:null}
+
+/* ---------- carga ---------- */
+async function loadData(){
+  if(!URL_){ $('stat').textContent='sin URL'; $('stat').className='pill err';
+    $('hsub').textContent='Configura la URL en la pestaña Datos'; renderAll(); return }
+  $('stat').textContent='cargando'; $('stat').className='pill';
+  try{
+    const r=await fetch(URL_,{method:'GET',redirect:'follow'});
+    const j=await r.json();
+    DATA=(j.entries||[]).filter(e=>e&&e.date).map(e=>({
+      id:e.id, date:dstr(e.date), phase:String(e.phase||'').trim(),
+      compartment:String(e.compartment||'').trim(),
+      temp:n(e.temp), ph_feed:n(e.ph_feed), ec_feed:n(e.ec_feed),
+      ph_drain:n(e.ph_drain), ec_drain:n(e.ec_drain),
+      vol_feed:n(e.vol_feed), vol_drain:n(e.vol_drain),
+      drippers:n(e.drippers), pct_drain:n(e.pct_drain),
+      user:e.user||'', timestamp:e.timestamp||''
+    })).filter(e=>PH_BY_ID[e.phase]);
+    DATA.sort((a,b)=>a.date.localeCompare(b.date));
+    $('stat').textContent=DATA.length+' reg'; $('stat').className='pill ok';
+    const last=DATA.length?DATA[DATA.length-1].date:null;
+    $('hsub').textContent=last?('Último registro: '+last):'Sin registros aún';
+  }catch(err){
+    $('stat').textContent='error'; $('stat').className='pill err';
+    $('hsub').textContent='No se pudo leer el Sheet';
+    toast('Error al cargar','err');
+  }
+  renderAll();
+}
+
+/* ---------- agregación ---------- */
+// Devuelve [{key, date, byPhase:{phaseId:value}}]
+function series(metricKey,rangeDays,aggMode){
+  let rows=DATA;
+  if(rangeDays>0){
+    const cut=dstr(addDays(new Date(),-rangeDays));
+    rows=rows.filter(r=>r.date>=cut);
+  }
+  const buckets={};
+  rows.forEach(r=>{
+    const k = aggMode==='w' ? isoWeekKey(r.date) : r.date;
+    buckets[k]=buckets[k]||{};
+    (buckets[k][r.phase]=buckets[k][r.phase]||[]).push(r[metricKey]);
+  });
+  return Object.keys(buckets).sort().map(k=>{
+    const byPhase={};
+    Object.keys(buckets[k]).forEach(p=>byPhase[p]=mean(buckets[k][p]));
+    return {key:k, byPhase};
+  });
+}
+
+/* ---------- motor de gráficos SVG ---------- */
+function lineChart(host, pts, opts){
+  opts=opts||{};
+  const W=860, H=opts.h||300, ml=52, mr=14, mt=14, mb=42;
+  const iw=W-ml-mr, ih=H-mt-mb;
+  const keys=pts.map(p=>p.key);
+  const lines=opts.lines||[];
+  let vals=[]; lines.forEach(l=>pts.forEach(p=>{const v=p.byPhase?p.byPhase[l.id]:p[l.id];if(v!=null)vals.push(v)}));
+  if(!keys.length||!vals.length){
+    host.innerHTML='<div class="empty">Sin datos para este periodo.<br>Registra unos días y vuelve.</div>';
+    return;
+  }
+  let lo=Math.min(...vals), hi=Math.max(...vals);
+  if(opts.zero) lo=Math.min(0,lo);
+  if(opts.at1){ lo=Math.min(lo,0.9); hi=Math.max(hi,1.1); }
+  const pad=(hi-lo)*0.15||Math.abs(hi*0.1)||1;
+  lo-=pad; hi+=pad;
+  if(opts.minZero&&lo<0)lo=0;
+  const X=i=>ml+(keys.length===1?iw/2:i*iw/(keys.length-1));
+  const Y=v=>mt+ih-((v-lo)/(hi-lo))*ih;
+
+  let s=`<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">`;
+  // grid + eje y
+  const ticks=5;
+  for(let i=0;i<=ticks;i++){
+    const v=lo+(hi-lo)*i/ticks, y=Y(v);
+    s+=`<line x1="${ml}" y1="${y}" x2="${W-mr}" y2="${y}" stroke="#2a323d" stroke-width="1"/>`;
+    s+=`<text x="${ml-8}" y="${y+4}" fill="#6e7681" font-size="11" font-family="IBM Plex Mono" text-anchor="end">${v.toFixed(opts.dec??1)}</text>`;
+  }
+  // línea de referencia en 1.0 (ratio)
+  if(opts.at1){
+    const y=Y(1);
+    s+=`<line x1="${ml}" y1="${y}" x2="${W-mr}" y2="${y}" stroke="#8b949e" stroke-width="1.2" stroke-dasharray="5 4"/>`;
+    s+=`<text x="${W-mr-4}" y="${y-6}" fill="#8b949e" font-size="10" font-family="IBM Plex Mono" text-anchor="end">1.0 = sin concentración</text>`;
+  }
+  // eje x
+  const step=Math.max(1,Math.ceil(keys.length/7));
+  keys.forEach((k,i)=>{
+    if(i%step&&i!==keys.length-1)return;
+    const lab=k.includes('W')?k.slice(5):k.slice(5);
+    s+=`<text x="${X(i)}" y="${H-mb+20}" fill="#6e7681" font-size="10.5" font-family="IBM Plex Mono" text-anchor="middle">${lab}</text>`;
+  });
+  // series
+  lines.forEach(l=>{
+    const seg=[]; let cur=[];
+    pts.forEach((p,i)=>{
+      const v=p.byPhase?p.byPhase[l.id]:p[l.id];
+      if(v==null){ if(cur.length)seg.push(cur); cur=[]; }
+      else cur.push([X(i),Y(v)]);
+    });
+    if(cur.length)seg.push(cur);
+    seg.forEach(g=>{
+      if(g.length>1)
+        s+=`<polyline points="${g.map(p=>p[0]+','+p[1]).join(' ')}" fill="none" stroke="${l.c}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>`;
+      g.forEach(p=>{ s+=`<circle cx="${p[0]}" cy="${p[1]}" r="${g.length===1?3.6:2.8}" fill="${l.c}"/>` });
+    });
+  });
+  s+='</svg>';
+  host.innerHTML=s;
+}
+
+function legend(host,lines){
+  host.innerHTML=lines.map(l=>`<span><i style="background:${l.c}"></i>${l.name}</span>`).join('');
+}
+
+/* ---------- RESUMEN ---------- */
+function renderKpis(){
+  const box=$('kpis');
+  const cut=dstr(addDays(new Date(),-7));
+  const r7=DATA.filter(r=>r.date>=cut);
+  if(!DATA.length){ box.innerHTML='<div class="empty" style="grid-column:1/-1">Aún no hay registros en el Sheet.</div>'; return }
+  const days=new Set(r7.map(r=>r.date)).size;
+  const pd=mean(r7.map(r=>r.pct_drain));
+  const ecd=mean(r7.map(r=>r.ec_drain));
+  const ecf=mean(r7.map(r=>r.ec_feed));
+  const ratio=(ecd!=null&&ecf)?ecd/ecf:null;
+  const phd=mean(r7.map(r=>r.ph_drain));
+  const missing=r7.filter(r=>r.vol_drain==null).length;
+  const k=(lab,val,sub,col)=>`<div class="kpi"><div class="lab">${lab}</div>
+    <div class="val" style="color:${col||'var(--txt)'}">${val}</div><div class="sub">${sub}</div></div>`;
+  const phf7=mean(r7.map(r=>r.ph_feed));
+  box.innerHTML=
+    k('pH drain', fmt(phd,2),'feed '+fmt(phf7,2))+
+    k('EC drain', fmt(ecd,2), 'feed '+fmt(ecf,2))+
+    k('% Drain medio', fmt(pd,1)+'%','últimos 7 días','var(--accent)')+
+    k('Concentración', ratio!=null?fmt(ratio,2)+'×':'—','EC drain ÷ EC feed', ratio!=null&&ratio>1.8?'var(--warn)':'var(--ok)')+
+    k('Días con registro', days+'/7', r7.length+' mediciones')+
+    (missing?k('Sin drenaje', missing,'registros incompletos','var(--warn)'):'');
+}
+
+function renderPhaseCards(){
+  const box=$('phaseCards');
+  if(!DATA.length){box.innerHTML='<div class="empty">—</div>';return}
+  const last=DATA[DATA.length-1].date;
+  $('lastDay').textContent=last;
+  const rows=DATA.filter(r=>r.date===last);
+  box.innerHTML='';
+  PHASES.forEach(p=>{
+    const rs=rows.filter(r=>r.phase===p.id);
+    const pd=mean(rs.map(r=>r.pct_drain));
+    const ecd=mean(rs.map(r=>r.ec_drain)), ecf=mean(rs.map(r=>r.ec_feed));
+    const phd=mean(rs.map(r=>r.ph_drain)), phf=mean(rs.map(r=>r.ph_feed));
+    const pctc=Math.round(rs.length/p.n*100);
+    const d=document.createElement('div');
+    d.className='phcard'; d.style.borderLeftColor=p.c;
+    const pair=(f,dv,dec)=>`<div class="pair">
+        <span class="fe">${fmt(f,dec)}</span><span class="ar">→</span>
+        <span class="dr" style="color:${p.c}">${fmt(dv,dec)}</span></div>`;
+    d.innerHTML=`
+      <div class="top">
+        <span class="nm" style="color:${p.c}">${p.id}</span>
+        <span class="cnt">${rs.length}/${p.n} comp</span>
+      </div>
+      <div class="bar" style="margin-bottom:11px"><i style="width:${pctc}%;background:${p.c};opacity:.75"></i></div>
+      <div class="reads">
+        <div class="rd"><div class="lb">pH</div>${pair(phf,phd,2)}<div class="sub">feed → drain</div></div>
+        <div class="rd"><div class="lb">EC</div>${pair(ecf,ecd,2)}<div class="sub">feed → drain</div></div>
+        <div class="rd"><div class="lb">Drain</div>
+          <div class="one" style="color:${p.c}">${pd==null?'—':fmt(pd,1)+'%'}</div>
+          <div class="sub">del volumen</div></div>
+      </div>`;
+    box.appendChild(d);
+  });
+}
+
+function renderCoverage(){
+  const box=$('coverage');
+  const days=[]; for(let i=13;i>=0;i--)days.push(dstr(addDays(new Date(),-i)));
+  let h='<table><thead><tr><th>Fase</th>';
+  days.forEach(d=>h+=`<th style="text-align:center;padding:6px 3px">${d.slice(8)}</th>`);
+  h+='</tr></thead><tbody>';
+  PHASES.forEach(p=>{
+    h+=`<tr><td><span class="ph" style="background:${p.c}22;color:${p.c}">${p.s}</span></td>`;
+    days.forEach(d=>{
+      const c=DATA.filter(r=>r.date===d&&r.phase===p.id).length;
+      let bg='transparent',fg='var(--dim2)',txt='·';
+      if(c>0&&c<p.n){bg='rgba(210,153,34,.22)';fg='var(--warn)';txt=c}
+      if(c>=p.n){bg='rgba(63,185,80,.22)';fg='var(--ok)';txt='✓'}
+      h+=`<td style="text-align:center;padding:6px 3px"><span style="display:inline-block;width:22px;line-height:20px;border-radius:5px;background:${bg};color:${fg};font-size:10.5px">${txt}</span></td>`;
+    });
+    h+='</tr>';
+  });
+  box.innerHTML=h+'</tbody></table>';
+}
+
+/* ---------- TENDENCIAS ---------- */
+function renderPhChips(){
+  const box=$('phChips'); box.innerHTML='';
+  PHASES.forEach(p=>{
+    const b=document.createElement('button');
+    const on=activePhases.has(p.id);
+    b.className='chip'+(on?' on':'');
+    b.textContent=p.id;
+    if(on){b.style.background=p.c;b.style.borderColor=p.c}
+    b.onclick=()=>{
+      if(activePhases.has(p.id)){ if(activePhases.size>1)activePhases.delete(p.id) }
+      else activePhases.add(p.id);
+      renderPhChips(); renderTrends();
+    };
+    box.appendChild(b);
+  });
+}
+
+function activeLines(){
+  return PHASES.filter(p=>activePhases.has(p.id)).map(p=>({id:p.id,name:p.id,c:p.c}));
+}
+
+function renderTrends(){
+  const m=METRICS.find(x=>x.k===metric);
+  const pts=series(metric,range,agg);
+  const lines=activeLines();
+  lineChart($('chMain'),pts,{lines,dec:m.k==='vol_feed'?0:(m.k==='pct_drain'?0:2),minZero:m.k==='pct_drain'});
+  legend($('lgMain'),lines);
+  $('metricNote').textContent=m.note;
+
+  // ratio EC drain / EC feed
+  const rpts=ratioSeries(range,agg);
+  lineChart($('chRatio'),rpts,{lines,h:250,dec:2,at1:true});
+  legend($('lgRatio'),lines);
+
+  renderFeedDrain();
+}
+
+function ratioSeries(rangeDays,aggMode){
+  let rows=DATA;
+  if(rangeDays>0){const cut=dstr(addDays(new Date(),-rangeDays));rows=rows.filter(r=>r.date>=cut)}
+  const b={};
+  rows.forEach(r=>{
+    if(r.ec_drain==null||!r.ec_feed)return;
+    const k=aggMode==='w'?isoWeekKey(r.date):r.date;
+    b[k]=b[k]||{}; (b[k][r.phase]=b[k][r.phase]||[]).push(r.ec_drain/r.ec_feed);
+  });
+  return Object.keys(b).sort().map(k=>{
+    const byPhase={}; Object.keys(b[k]).forEach(p=>byPhase[p]=mean(b[k][p]));
+    return {key:k,byPhase};
+  });
+}
+
+function renderFeedDrain(){
+  const ph=$('selFdPhase').value;
+  const fk=fdVar==='ec'?'ec_feed':'ph_feed';
+  const dk=fdVar==='ec'?'ec_drain':'ph_drain';
+  let rows=DATA.filter(r=>r.phase===ph);
+  if(range>0){const cut=dstr(addDays(new Date(),-range));rows=rows.filter(r=>r.date>=cut)}
+  const b={};
+  rows.forEach(r=>{
+    const k=agg==='w'?isoWeekKey(r.date):r.date;
+    b[k]=b[k]||{f:[],d:[]};
+    if(r[fk]!=null)b[k].f.push(r[fk]);
+    if(r[dk]!=null)b[k].d.push(r[dk]);
+  });
+  const pts=Object.keys(b).sort().map(k=>({key:k,feed:mean(b[k].f),drain:mean(b[k].d)}));
+  const p=PH_BY_ID[ph];
+  const lines=[{id:'feed',name:'Feed',c:'#58c4dc'},{id:'drain',name:'Drain',c:p?p.c:'#d4874a'}];
+  lineChart($('chFd'),pts,{lines,h:250,dec:2});
+  legend($('lgFd'),lines);
+}
+
+/* ---------- DATOS ---------- */
+function filteredRows(){
+  const ph=$('fPhase').value, from=$('fFrom').value, to=$('fTo').value;
+  return DATA.filter(r=>
+    (ph==='all'||r.phase===ph) &&
+    (!from||r.date>=from) && (!to||r.date<=to)
+  );
+}
+const COLS=[
+  {k:'date',l:'Fecha'},{k:'phase',l:'Fase'},{k:'compartment',l:'Comp'},
+  {k:'pct_drain',l:'% Drain',d:1},{k:'vol_feed',l:'Vol Feed',d:0},{k:'vol_drain',l:'Vol Drain',d:0},
+  {k:'drippers',l:'Got',d:0},{k:'ec_feed',l:'EC Feed',d:2},{k:'ec_drain',l:'EC Drain',d:2},
+  {k:'ph_feed',l:'pH Feed',d:2},{k:'ph_drain',l:'pH Drain',d:2},{k:'temp',l:'Temp',d:1},{k:'user',l:'Por'}
+];
+function renderTable(){
+  const rows=filteredRows().slice().sort((a,b)=>{
+    const A=a[sortCol],B=b[sortCol];
+    if(A==null)return 1; if(B==null)return -1;
+    return (A>B?1:A<B?-1:0)*sortDir;
+  });
+  let h='<thead><tr>'+COLS.map(c=>`<th data-c="${c.k}">${c.l}${sortCol===c.k?(sortDir>0?' ↑':' ↓'):''}</th>`).join('')+'</tr></thead><tbody>';
+  if(!rows.length) h+=`<tr><td colspan="${COLS.length}" style="text-align:center;color:var(--dim2);padding:26px">Sin registros con estos filtros.</td></tr>`;
+  rows.slice(0,400).forEach(r=>{
+    h+='<tr>'+COLS.map(c=>{
+      let v=r[c.k];
+      if(c.k==='phase'){const p=PH_BY_ID[v];return `<td><span class="ph" style="background:${p.c}22;color:${p.c}">${p.s}</span></td>`}
+      if(c.d!=null) return `<td class="${v==null?'miss':''}">${v==null?'—':v.toFixed(c.d)}</td>`;
+      return `<td>${v??'—'}</td>`;
+    }).join('')+'</tr>';
+  });
+  $('tbl').innerHTML=h+'</tbody>';
+  $('tblNote').textContent=`${rows.length} registros${rows.length>400?' (mostrando los primeros 400 — usa CSV para el total)':''}.`;
+  $('tbl').querySelectorAll('th').forEach(t=>t.onclick=()=>{
+    const c=t.dataset.c; if(sortCol===c)sortDir*=-1; else{sortCol=c;sortDir=1}
+    renderTable();
+  });
+}
+function exportCsv(){
+  const rows=filteredRows();
+  if(!rows.length){toast('Nada que exportar','err');return}
+  const head=COLS.map(c=>c.l).join(',');
+  const body=rows.map(r=>COLS.map(c=>{
+    const v=r[c.k]; return v==null?'':(typeof v==='string'&&v.includes(',')?`"${v}"`:v);
+  }).join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+head+'\n'+body],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='agriville_aguas_'+dstr(new Date())+'.csv';
+  a.click();
+  toast('CSV descargado','ok');
+}
+
+/* ---------- render maestro ---------- */
+function renderAll(){
+  renderKpis(); renderPhaseCards(); renderCoverage();
+  renderPhChips(); renderTrends(); renderTable();
+}
+
+/* ---------- init ---------- */
+function initApp(){
+  // selects
+  $('selMetric').innerHTML=METRICS.map(m=>`<option value="${m.k}">${m.l}${m.u?' ('+m.u+')':''}</option>`).join('');
+  $('selMetric').value=metric;
+  $('selMetric').onchange=e=>{metric=e.target.value;renderTrends()};
+
+  $('selFdPhase').innerHTML=PHASES.map(p=>`<option value="${p.id}">${p.id}</option>`).join('');
+  $('selFdPhase').onchange=renderFeedDrain;
+
+  $('fPhase').innerHTML='<option value="all">Todas</option>'+PHASES.map(p=>`<option value="${p.id}">${p.id}</option>`).join('');
+  ['fPhase','fFrom','fTo'].forEach(id=>$(id).onchange=renderTable);
+
+  $('segRange').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    $('segRange').querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on'); range=+b.dataset.r; renderTrends();
+  });
+  $('segAgg').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    $('segAgg').querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on'); agg=b.dataset.a; renderTrends();
+  });
+  $('segFd').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    $('segFd').querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on'); fdVar=b.dataset.v; renderFeedDrain();
+  });
+
+  document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+    document.querySelectorAll('.pg').forEach(x=>x.classList.remove('on'));
+    t.classList.add('on'); $(t.dataset.pg).classList.add('on');
+  });
+
+  $('cfgUrl').value=URL_;
+  $('btnSaveUrl').onclick=()=>{
+    URL_=$('cfgUrl').value.trim(); localStorage.setItem(K_URL,URL_);
+    toast('URL guardada','ok'); loadData();
+  };
+  $('btnRef').onclick=loadData;
+  $('btnCsv').onclick=exportCsv;
+
+  loadData();
+}
+initApp();
+</script>
+</body>
+</html>
