@@ -55,8 +55,17 @@
   .ctrls label{font-size:11px;color:var(--dim2);text-transform:uppercase;letter-spacing:.6px;font-weight:600}
 
   /* chart */
-  .chartbox{width:100%;overflow:hidden}
+  .chartbox{width:100%;overflow:hidden;position:relative;touch-action:pan-y}
   svg.chart{width:100%;height:auto;display:block}
+  .hlc{transition:cx .13s ease-out,cy .13s ease-out,opacity .13s ease-out}
+  .tip{position:absolute;top:8px;display:none;background:#0a0e13;border:1px solid var(--line);
+       border-radius:9px;padding:8px 11px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;
+       pointer-events:none;z-index:5;min-width:118px;box-shadow:0 6px 22px rgba(0,0,0,.55);
+       transition:left .13s ease-out}
+  .tip .th{color:var(--dim);font-size:10.5px;letter-spacing:.6px;margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid var(--line)}
+  .tip .tr{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:2.5px 0;color:var(--dim);white-space:nowrap}
+  .tip .tr b{color:var(--txt);font-weight:600}
+  .tip .tr i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:middle}
   .lg{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px;font-size:11.5px;color:var(--dim)}
   .lg i{display:inline-block;width:11px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
 
@@ -80,25 +89,29 @@
   .bar{height:6px;background:var(--panel2);border-radius:3px;overflow:hidden;margin-top:4px}
   .bar i{display:block;height:100%}
 
-  /* ---- tarjetas de fase con lecturas protagonistas ---- */
-  .phcard{background:var(--panel2);border:1px solid var(--line);border-radius:13px;padding:13px 14px 14px;margin-bottom:11px;border-left-width:4px}
-  .phcard .top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:11px}
-  .phcard .nm{font-weight:700;font-size:15px;letter-spacing:.2px}
+  /* ---- tarjetas de fase, mismo lenguaje visual que los KPI ---- */
+  .phcard{padding:0 0 0 12px;margin-bottom:17px;border-left:3px solid var(--line)}
+  .phcard:last-child{margin-bottom:2px}
+  .phcard .top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:7px}
+  .phcard .nm{font-weight:700;font-size:14.5px;letter-spacing:.2px}
   .phcard .cnt{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim2)}
-  .reads{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
-  .rd{background:rgba(0,0,0,.22);border-radius:10px;padding:9px 10px 10px;text-align:center}
-  .rd .lb{font-size:9.5px;text-transform:uppercase;letter-spacing:1px;color:var(--dim2);font-weight:700;margin-bottom:6px}
-  .rd .pair{display:flex;align-items:baseline;justify-content:center;gap:5px;font-family:'IBM Plex Mono',monospace;line-height:1.05}
-  .rd .fe{font-size:19px;font-weight:500;color:var(--dim)}
-  .rd .ar{font-size:12px;color:var(--dim2)}
-  .rd .dr{font-size:25px;font-weight:600}
-  .rd .one{font-family:'IBM Plex Mono',monospace;font-size:27px;font-weight:600;line-height:1.05}
-  .rd .sub{font-size:9.5px;color:var(--dim2);margin-top:5px;letter-spacing:.4px}
+  .reads{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .rd{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px 11px 11px}
+  .rd .lb{font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--dim2);font-weight:600;margin-bottom:7px}
+  .duo{display:flex;align-items:flex-start}
+  .duo .cel{flex:1;min-width:0}
+  .duo .sep{width:1px;align-self:stretch;background:var(--line);margin:2px 9px 0}
+  .duo .v{font-family:'IBM Plex Mono',monospace;font-size:21px;font-weight:600;line-height:1.05}
+  .duo .t{font-size:9.5px;color:var(--dim2);margin-top:4px;letter-spacing:.5px}
+  .rd .one{font-family:'IBM Plex Mono',monospace;font-size:23px;font-weight:600;line-height:1.05}
+  .rd .sub{font-size:9.5px;color:var(--dim2);margin-top:4px;letter-spacing:.5px}
   @media(max-width:560px){
     .reads{gap:7px}
-    .rd{padding:8px 5px 9px}
-    .rd .fe{font-size:15px} .rd .dr{font-size:20px} .rd .one{font-size:21px}
-    .rd .lb{font-size:9px;letter-spacing:.6px}
+    .rd{padding:9px 8px 10px}
+    .duo .v{font-size:16px} .rd .one{font-size:18px}
+    .duo .sep{margin:2px 5px 0}
+    .rd .lb{font-size:9.5px;letter-spacing:.4px;margin-bottom:6px}
+    .duo .t,.rd .sub{font-size:8.5px}
   }
   .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(18px);background:var(--panel2);border:1px solid var(--line);padding:10px 18px;border-radius:22px;font-size:13px;font-weight:600;opacity:0;transition:.25s;z-index:60;pointer-events:none}
   .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -373,8 +386,62 @@ function lineChart(host, pts, opts){
       g.forEach(p=>{ s+=`<circle cx="${p[0]}" cy="${p[1]}" r="${g.length===1?3.6:2.8}" fill="${l.c}"/>` });
     });
   });
+  s+='<g class="hl">'+lines.map(l=>
+      `<circle class="hlc" data-id="${l.id}" cx="0" cy="0" r="5" fill="${l.c}" stroke="#0d1117" stroke-width="2" opacity="0"/>`
+    ).join('')+'</g>';
+  // capa transparente para capturar el puntero en toda el área
+  s+=`<rect x="0" y="0" width="${W}" height="${H}" fill="transparent"/>`;
   s+='</svg>';
   host.innerHTML=s;
+
+  /* ---------- interacción: puntos resaltados + tooltip ---------- */
+  const dec=opts.dec??1, unit=opts.unit||'';
+  const svg=host.querySelector('svg');
+  const hlc={};
+  svg.querySelectorAll('.hlc').forEach(c=>hlc[c.dataset.id]=c);
+  const tip=document.createElement('div');
+  tip.className='tip';
+  host.appendChild(tip);
+
+  const valAt=(i,l)=>{const p=pts[i];return p.byPhase?p.byPhase[l.id]:p[l.id]};
+  let lastIdx=-1;
+
+  function showAt(clientX){
+    const r=svg.getBoundingClientRect();
+    if(!r.width)return;
+    const sx=(clientX-r.left)/r.width*W;
+    let bi=0,bd=Infinity;
+    keys.forEach((k,i)=>{const d=Math.abs(X(i)-sx);if(d<bd){bd=d;bi=i}});
+    const gx=X(bi);
+    let rows=[], any=false;
+    lines.forEach(l=>{
+      const v=valAt(bi,l), c=hlc[l.id];
+      if(v==null){ if(c)c.setAttribute('opacity','0'); return }
+      any=true;
+      if(c){ c.setAttribute('cx',gx); c.setAttribute('cy',Y(v)); c.setAttribute('opacity','1') }
+      rows.push(`<div class="tr"><span><i style="background:${l.c}"></i>${l.name}</span><b>${v.toFixed(dec)}${unit}</b></div>`);
+    });
+    if(!any){hideTip();return}
+    if(bi!==lastIdx){
+      tip.innerHTML=`<div class="th">${keys[bi]}</div>${rows.join('')}`;
+      lastIdx=bi;
+    }
+    tip.style.display='block';
+    const px=gx/W*r.width, hw=host.clientWidth, tw=tip.offsetWidth;
+    let left=px+16;
+    if(left+tw>hw-4) left=px-tw-16;
+    if(left<4) left=4;
+    tip.style.left=left+'px';
+  }
+  function hideTip(){
+    Object.values(hlc).forEach(c=>c.setAttribute('opacity','0'));
+    tip.style.display='none'; lastIdx=-1;
+  }
+
+  svg.addEventListener('pointermove',e=>showAt(e.clientX));
+  svg.addEventListener('pointerdown',e=>showAt(e.clientX));
+  svg.addEventListener('pointerleave',hideTip);
+  svg.addEventListener('pointercancel',hideTip);
 }
 
 function legend(host,lines){
@@ -421,18 +488,20 @@ function renderPhaseCards(){
     const pctc=Math.round(rs.length/p.n*100);
     const d=document.createElement('div');
     d.className='phcard'; d.style.borderLeftColor=p.c;
-    const pair=(f,dv,dec)=>`<div class="pair">
-        <span class="fe">${fmt(f,dec)}</span><span class="ar">→</span>
-        <span class="dr" style="color:${p.c}">${fmt(dv,dec)}</span></div>`;
+    const duo=(f,dv,dec)=>`<div class="duo">
+        <div class="cel"><div class="v">${fmt(f,dec)}</div><div class="t">feed</div></div>
+        <div class="sep"></div>
+        <div class="cel"><div class="v" style="color:${p.c}">${fmt(dv,dec)}</div><div class="t">drain</div></div>
+      </div>`;
     d.innerHTML=`
       <div class="top">
         <span class="nm" style="color:${p.c}">${p.id}</span>
         <span class="cnt">${rs.length}/${p.n} comp</span>
       </div>
-      <div class="bar" style="margin-bottom:11px"><i style="width:${pctc}%;background:${p.c};opacity:.75"></i></div>
+      <div class="bar" style="margin-bottom:10px"><i style="width:${pctc}%;background:${p.c};opacity:.75"></i></div>
       <div class="reads">
-        <div class="rd"><div class="lb">pH</div>${pair(phf,phd,2)}<div class="sub">feed → drain</div></div>
-        <div class="rd"><div class="lb">EC</div>${pair(ecf,ecd,2)}<div class="sub">feed → drain</div></div>
+        <div class="rd"><div class="lb">pH</div>${duo(phf,phd,2)}</div>
+        <div class="rd"><div class="lb">EC</div>${duo(ecf,ecd,2)}</div>
         <div class="rd"><div class="lb">Drain</div>
           <div class="one" style="color:${p.c}">${pd==null?'—':fmt(pd,1)+'%'}</div>
           <div class="sub">del volumen</div></div>
@@ -487,13 +556,15 @@ function renderTrends(){
   const m=METRICS.find(x=>x.k===metric);
   const pts=series(metric,range,agg);
   const lines=activeLines();
-  lineChart($('chMain'),pts,{lines,dec:m.k==='vol_feed'?0:(m.k==='pct_drain'?0:2),minZero:m.k==='pct_drain'});
+  const u = m.k==='pct_drain'?'%' : m.k==='temp'?'°C' : m.k==='vol_feed'?' mL' : '';
+  const dc = m.k==='vol_feed'?0 : m.k==='pct_drain'?1 : 2;
+  lineChart($('chMain'),pts,{lines,dec:dc,unit:u,minZero:m.k==='pct_drain'});
   legend($('lgMain'),lines);
   $('metricNote').textContent=m.note;
 
   // ratio EC drain / EC feed
   const rpts=ratioSeries(range,agg);
-  lineChart($('chRatio'),rpts,{lines,h:250,dec:2,at1:true});
+  lineChart($('chRatio'),rpts,{lines,h:250,dec:2,unit:'×',at1:true});
   legend($('lgRatio'),lines);
 
   renderFeedDrain();
